@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Play the volume changed sound
+canberra-gtk-play -i audio-volume-change -d "changeVolume"
+
 # Arbitrary but unique message tag
 msgTag="myvolume"
 
@@ -17,6 +20,3 @@ else
     dunstify -t 3000 -a "changeVolume" -u low -i audio-volume-high -h string:x-dunst-stack-tag:$msgTag \
     -h int:value:"$volume" "Volume: ${volume}%"
 fi
-
-# Play the volume changed sound
-canberra-gtk-play -i audio-volume-change -d "changeVolume"
