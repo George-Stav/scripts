@@ -18,9 +18,9 @@ volume="$(amixer | grep "Front Left:" | head -1 | awk '{print $5}' | sed 's/[^0-
 mute="$(amixer -c 0 get Master | tail -1 | awk '{print $6}' | sed 's/[^a-z]*//g')"
 if [[ $volume == 0 || "$mute" == "off" ]]; then
     # Show the sound muted notification
-    dunstify -t 3000 -a "changeVolume" -u low -i "~/.local/share/icons/sound/mute.png" -h string:x-dunst-stack-tag:$msgTag "Volume muted"
+    notify-send -t 3000 -a "changeVolume" -u low -i "~/.local/share/icons/sound/mute.png" -h string:x-dunst-stack-tag:$msgTag "Volume muted"
 else
     # Show the volume notification
-    dunstify -t 3000 -a "changeVolume" -u low -i "~/.local/share/icons/sound/high-volume.png"  -h string:x-dunst-stack-tag:$msgTag \
+    notify-send -t 3000 -a "changeVolume" -u low -i "~/.local/share/icons/sound/high-volume.png" -h string:x-dunst-stack-tag:$msgTag \
     -h int:value:"$volume" "Volume: ${volume}%"
 fi

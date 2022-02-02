@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# should be "$HOME/.local/bin" but qtile's `cmd_spawn` doesn't check there apparently
+symlinks="/usr/bin"
+find "$HOME/dev/scripts/scripts/" -type f | while read s; do
+	[ ! -x $s ] && chmod +x $s
+	ln -sf $s $symlinks
+done
+
+# remove broken symlinks
+find -L $symlinks \
+	-type l \
+	-exec rm {} \;
