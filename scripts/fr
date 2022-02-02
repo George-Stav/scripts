@@ -1,0 +1,18 @@
+#!/bin/sh
+
+file=$(find -L \
+	"$HOME/Documents/notes" \
+	"$HOME/dev/scripts" \
+	"$HOME/.config" \
+	"$HOME/dotfiles" | fzf --reverse --height=40%)
+[[ -z $file || ! -e $file ]] && exit
+
+case $file in
+	*pdf)
+		zathura --fork $file && exit
+		;;
+	*)
+		cd $(dirname $file)
+		nvim $file
+		;;
+esac
