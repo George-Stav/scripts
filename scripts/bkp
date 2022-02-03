@@ -10,5 +10,6 @@ rsync --archive \
 	--group \
 	--exclude "/mnt/*" \
 	--exclude "/run/timeshift" \
+	--exclude "/var/lib/libvirt" \
 	"/" \
-	"/mnt/WD/backups/$(date +'%Y_%m_%d')"
+	"/mnt/WD/backups/$hostname/$(date +'%Y_%m_%d')"
