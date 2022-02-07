@@ -1,12 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 file=$(find -L \
-	"$HOME/Documents/notes" \
-	"$HOME/dev/scripts" \
-	"$HOME/.config" \
-	"$HOME/dotfiles" | fzf --reverse --height=40%)
+	"$HOME/repos" \
+	"$HOME/.config" | fzf --reverse --height=40%)
 
-[ -z $file || ! -e $file ] && exit
+# [ -z "$file" ] && exit
+[ -z "$file" ] || [ ! -e "$file" ] && exit
+# [ -z "$file" || ! -e "$file" ] && exit
 
 case $file in
 	*pdf)

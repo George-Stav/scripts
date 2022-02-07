@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -e
 
 du -bd 1 $argv | sort -n | numfmt --to iec

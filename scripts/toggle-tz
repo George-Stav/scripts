@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -e
 
 current_tz=$(timedatectl --property=Timezone --value show)
 
-if [[ $current_tz == "Europe/Athens" ]]; then
+if [ "$current_tz" = "Europe/Athens" ]; then
     new_tz="Europe/London"
 else
     new_tz="Europe/Athens"
