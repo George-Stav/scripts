@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 symlinks="$HOME/.local/bin"
-find "$HOME/dev/scripts/scripts/" -type f | while read s; do
+find "$HOME/repos/scripts/scripts/" -type f | while read s; do
 	[ ! -x $s ] && chmod +x $s
 	ln -sf $s $symlinks
 done
