@@ -4,9 +4,7 @@ file=$(find -L \
 	"$HOME/repos" \
 	"$HOME/.config" | fzf --reverse --height=40%)
 
-# [ -z "$file" ] && exit
 [ -z "$file" ] || [ ! -e "$file" ] && exit
-# [ -z "$file" || ! -e "$file" ] && exit
 
 case "$file" in
 	*pdf)

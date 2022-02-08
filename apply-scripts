@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 symlinks="$HOME/.local/bin"
 find "$HOME/repos/scripts/scripts/" -type f | while read -r s; do
