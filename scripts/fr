@@ -13,7 +13,7 @@ case "$file" in
 	*)
 		cd "$(dirname "$file")" || return
 		if [ -d "$file" ]; then ranger
-		else nvim "$file"
+		else "$EDITOR" "$file"
 		fi
 		;;
 esac
