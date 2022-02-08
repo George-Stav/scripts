@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -euo pipefail
-
 internal="eDP-1"
 external1="DP-2"
 external2="HDMI-1"

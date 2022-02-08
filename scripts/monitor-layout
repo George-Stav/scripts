@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Get name of monitor that is on the left
 # The way this works is using the virtual monitor position set by X11

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # icons: https://www.flaticon.com/packs/countrys-flags
 
 set -e
