@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 symlinks="$HOME/.local/bin"
-find "$HOME/dev/scripts/scripts/" -type f | while read s; do
-	[ ! -x $s ] && chmod +x $s
-	ln -sf $s $symlinks
+find "$HOME/repos/scripts/scripts/" -type f | while read -r s; do
+	[ ! -x "$s" ] && chmod +x "$s"
+	ln -sf "$s" "$symlinks"
 done
 
 # remove broken symlinks
-find -L $symlinks \
+find -L "$symlinks" \
 	-type l \
 	-exec rm {} \;
