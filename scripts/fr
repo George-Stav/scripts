@@ -2,6 +2,7 @@
 
 file=$(find -L \
 	"$HOME/repos" \
+	"$HOME/Packt" \
 	"$HOME/.config" | fzf --reverse --height=40%)
 
 # [ -z "$file" ] && exit
