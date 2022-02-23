@@ -2,11 +2,12 @@
 
 choose() {
 	fzf --reverse \
-	--min-height=7 --height=7% \
-	--cycle -m --marker="*" \
-	--bind 'tab:down' --bind 'btab:up' \
-	--bind 'shift-down:toggle+down' --bind 'shift-up:toggle+up'
-}
+		--ansi \
+		--min-height=7 --height=7% \
+		--cycle -m --marker="*" \
+		--bind 'tab:down' --bind 'btab:up' \
+		--bind 'shift-down:toggle+down' --bind 'shift-up:toggle+up'
+	}
 
 get_rand() {
 	# read allows for piping into the function since it reads standard input
@@ -51,23 +52,23 @@ active_conn() {
 }
 
 status() {
-	[ -z "$(active_conn)" ] && printf "%s\n" "${RED}No mullvad connection was found." && exit 1
+	[ -z "$(active_conn)" ] && printf "%s\n" "${RED}No active connection was found." && exit 1
 	[ -z "$1" -a -n "$(active_conn)" ] && printf "${RED}[$(active_conn)] ${NORMAL}connection ${GREEN}confirmed!\n" && exit 0
 	curl https://am.i.mullvad.net/connected
 }
 
 existing_connection() {
 	[ -z "$(available_conns)" ] && printf "No mullvad connection was found\n" && exit 1
-	[ -n "$(active_conn)" ] && printf "%s\n" "${GREEN}$(active_conn) ${NORMAL}is already active."
 	[ "$(available_conns | wc -l)" = 1 ] && activate "$(available_conns)" && exit 0
 
 	printf "Choose which connection you want to activate:\n"
-	conn=$(available_conns | choose)
+	# conn=$(available_conns | choose)
+	conn=$(list | choose | awk '{print $1}')
 
 	[ "$(active_conn)" = "$conn" -a -n "$conn" ] && printf "%s\n" "${GREEN}$(active_conn) ${NORMAL}is already active." && exit 0
 	[ -z "$conn" ] && printf "%s\n" "No connection provided, exiting..." && exit 0
+	[ -n "$(active_conn)" ] && deactivate "$(active_conn)"
 
-	deactivate "$(active_conn)"
 	activate "$conn"
 }
 
@@ -124,12 +125,40 @@ purge() {
 	done
 }
 
+list() {
+	conns=$(nmcli connection show | grep mullvad)
+	[ -z "$conns" ] && printf "%s\n" "${RED}No registered connections found." && exit 1
+	echo "$conns" | awk -v yes="${GREEN}${NORMAL}" -v no="${RED}${NORMAL}" '{ gsub("--",no,$4); gsub("mullvad-[a-z0-9]+",yes,$4); printf ("%s\t%s\n",$1,$4) }'
+}
+
 
 CONF="$HOME/.local/share/vpn"
 # use custom script `colours` to find more colours
+ACCENT="$(tput setaf 12)"
 GREEN="$(tput setaf 10)"
 RED="$(tput setaf 9)"
 NORMAL="$(tput sgr0)"
+
+docs() {
+	printf "CLI utility to interact with mullvad-vpn. \nAvailable commands:\n"
+# ~~~ STATUS ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}s${ACCENT}|${GREEN}status${ACCENT}: ${NORMAL}check local connection status"
+	printf "\t${ACCENT}> %s\n" "${GREEN}sf${ACCENT}|${GREEN}force${ACCENT}|${GREEN}sforce${ACCENT}: ${NORMAL}force call to mullvad API to check remote connection"
+# ~~~ CONNECT ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}c${ACCENT}|${GREEN}connect${ACCENT}: ${NORMAL}activate an existing connection"
+	printf "\t${ACCENT}> %s\n" "${GREEN}cn${ACCENT}|${GREEN}new${ACCENT}|${GREEN}nconnect${ACCENT}: ${NORMAL}import and activate a connection to a new server"
+	printf "\t\t%s\n" "${RED}{country_code}${ACCENT}: ${NORMAL}location of new server; check \$HOME/.local/share/vpn/country_codes for more details"
+	printf "\t\t%s\n" "${RED}{}${ACCENT}: ${NORMAL}ask user to choose the country of the new server using fzf"
+# ~~~ DISCONNECT ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}d${ACCENT}|${GREEN}disconnect${ACCENT}: ${NORMAL}deactivate current connection"
+# ~~~ RANDOMISE ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}r${ACCENT}|${GREEN}random${ACCENT}|${GREEN}randomise${ACCENT}: ${NORMAL}import new connection to a different server of the same country; old connection is deleted"
+# ~~~ PURGE ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}p${ACCENT}|${GREEN}purge${ACCENT}: ${NORMAL}delete one or more existing connections"
+	printf "\t${ACCENT}> %s\n" "${GREEN}pa${ACCENT}|${GREEN}pall${ACCENT}|${GREEN}purgeall${ACCENT}: ${NORMAL}delete ${RED}all ${NORMAL}existing connections"
+# ~~~ LIST ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}l${ACCENT}|${GREEN}list${ACCENT}: ${NORMAL}list existing connections"
+}
 
 case "$1" in
 	s | status) status "$2" ;;
@@ -137,26 +166,9 @@ case "$1" in
 	c | connect) existing_connection ;;
 	cn | new | nconnect) new_connection "$2" ;;
 	d | disconnect) disconnect ;;
-	r | random | randomise) randomise "$2" ;;
+	r | random | randomise) randomise ;;
 	p | purge) purge ;;
 	pa | pall | purgeall) purge "all" ;;
-	l | list) nmcli connection show | grep mullvad ;;
+	l | list) list ;;
 	*) docs ;;
 esac
-
-
-
-
-
-
-docs() {
-	printf "CLI utility to interact with mullvad-vpn. \nAvailable commands:\n"
-# ~~~ STATUS ~~~ #
-	printf "\t%s\n" "${GREEN}[s]tatus: ${NORMAL}check connection status"
-	printf "\t\t%s\n" "${RED}{server}: ${NORMAL}check status for specific server"
-	printf "\t\t%s\n" "${RED}{server}: ${NORMAL}check status for specific server"
-	printf "\t\t%s\n" "${RED}{server}: ${NORMAL}check status for specific server"
-
-# ~~~ CONNECT ~~~ #
-# ~~~ DISCONNECT ~~~ #
-}
