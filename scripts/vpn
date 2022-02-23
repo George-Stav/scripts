@@ -1,0 +1,162 @@
+#!/bin/sh
+
+choose() {
+	fzf --reverse \
+	--min-height=7 --height=7% \
+	--cycle -m --marker="*" \
+	--bind 'tab:down' --bind 'btab:up' \
+	--bind 'shift-down:toggle+down' --bind 'shift-up:toggle+up'
+}
+
+get_rand() {
+	# read allows for piping into the function since it reads standard input
+	code="$1"
+	[ -z "$code" ] && read code
+	while [ -n "$(available_conns | grep "$rand")" ]; do
+		rand=$(find "$CONF/trackers_block_dns/" -exec basename {} .conf ';' | grep "mullvad-$code[0-9]\+" | shuf -n 1)
+	done
+	printf "$rand"
+}
+
+get_country() {
+	# read allows for piping into the function since it reads standard input
+	conn="$1"
+	[ -z "$conn" ] && read conn
+	echo "$conn" | awk -F '-' '{print $2}' | grep '[a-z]\+' -o
+}
+
+import() {
+	# replace trackers_block_dns with variable
+	nmcli connection import type wireguard file "$CONF/trackers_block_dns/$1.conf" > /dev/null && printf "%s\n" "${GREEN}$1  ${NORMAL}"
+}
+
+activate() {
+	nmcli connection up "$1" > /dev/null && printf "%s\n" "${GREEN}$1  ${NORMAL}"
+}
+
+deactivate() {
+	nmcli connection down "$1" > /dev/null && printf "%s\n" "${RED}$1  ${NORMAL}"
+}
+
+remove() {
+	nmcli connection delete "$1" > /dev/null && printf "%s\n" "Connection ${RED}$1 ${NORMAL}was removed."
+}
+
+available_conns() {
+	nmcli connection show | awk '/mullvad/ {print $1}'
+}
+
+active_conn() {
+	nmcli device show | awk '/mullvad/{print $2}' | head -1
+}
+
+status() {
+	[ -z "$(active_conn)" ] && printf "%s\n" "${RED}No mullvad connection was found." && exit 1
+	[ -z "$1" -a -n "$(active_conn)" ] && printf "${RED}[$(active_conn)] ${NORMAL}connection ${GREEN}confirmed!\n" && exit 0
+	curl https://am.i.mullvad.net/connected
+}
+
+existing_connection() {
+	[ -z "$(available_conns)" ] && printf "No mullvad connection was found\n" && exit 1
+	[ -n "$(active_conn)" ] && printf "%s\n" "${GREEN}$(active_conn) ${NORMAL}is already active."
+	[ "$(available_conns | wc -l)" = 1 ] && activate "$(available_conns)" && exit 0
+
+	printf "Choose which connection you want to activate:\n"
+	conn=$(available_conns | choose)
+
+	[ "$(active_conn)" = "$conn" -a -n "$conn" ] && printf "%s\n" "${GREEN}$(active_conn) ${NORMAL}is already active." && exit 0
+	[ -z "$conn" ] && printf "%s\n" "No connection provided, exiting..." && exit 0
+
+	deactivate "$(active_conn)"
+	activate "$conn"
+}
+
+new_connection() {
+	if [ -z "$1" ]; then
+		printf "list files and ask which connection to activate"
+		country=$(cat "$CONF/country_codes" | choose)
+		[ -z "$country" ] && printf "%s\n" "No country selected, exiting..." && exit 0
+		new_conn=$(echo "$country" | awk -F '-' '{print $1}' | get_rand)
+		[ -n "$(active_conn)" ] && deactivate "$(active_conn)"
+		import "$new_conn"
+	else
+		code="$1"
+		[ -z "$(find "$CONF/trackers_block_dns/" -exec basename {} .conf ';' | grep "mullvad-$code[0-9]\+")" ] && printf "%s\n" "${RED}$code ${NORMAL}is an invalid country code." && exit 1
+		new_conn=$(get_rand $code)
+		[ -n "$(active_conn)" ] && deactivate "$(active_conn)"
+		import "$new_conn"
+	fi
+}
+
+disconnect() {
+	[ -z "$(available_conns)" ] && printf "No connection found to deactivate." && exit 1
+	deactivate "$(active_conn)"
+}
+
+randomise() {
+	if [ -z "$(active_conn)" ]; then
+		printf "%s\n" "Which of the following servers do you want to randomise?"
+		old_conn=$(available_conns | choose)
+	else
+		old_conn="$(active_conn)"
+	fi
+
+	new_conn="$(get_country $old_conn | get_rand)"
+	printf "%s\n" "Removing ${RED}$old_conn${NORMAL}"
+	remove "$old_conn"
+	printf "%s\n" "Importing ${GREEN}$new_conn${NORMAL}..."
+	import "$new_conn"
+}
+
+purge() {
+	if [ -z "$1" ]; then
+		printf "%s\n" "Choose which connection you want to ${RED}purge${NORMAL}:"
+		conns=$(available_conns | choose)
+		[ -z "$conns" ] && printf "%s\n" "No connection chosen, exiting..." && exit 0
+	else
+		printf "%s\n%s\n" "Are you sure you want to ${RED}PURGE ${NORMAL}the following connections?" "${RED}$(available_conns)${NORMAL}"
+		choice=$(printf "Yes\nNo\n" | choose)
+		[ -z "$choice" -o "$choice" = "No" ] && printf "%s\n" "Wise choice..." && exit 0
+		conns="$(available_conns)"
+	fi
+	for c in "$conns"; do
+		remove "$c"
+	done
+}
+
+
+CONF="$HOME/.local/share/vpn"
+# use custom script `colours` to find more colours
+GREEN="$(tput setaf 10)"
+RED="$(tput setaf 9)"
+NORMAL="$(tput sgr0)"
+
+case "$1" in
+	s | status) status "$2" ;;
+	sf | force | sforce) status "force" ;;
+	c | connect) existing_connection ;;
+	cn | new | nconnect) new_connection "$2" ;;
+	d | disconnect) disconnect ;;
+	r | random | randomise) randomise "$2" ;;
+	p | purge) purge ;;
+	pa | pall | purgeall) purge "all" ;;
+	l | list) nmcli connection show | grep mullvad ;;
+	*) docs ;;
+esac
+
+
+
+
+
+
+docs() {
+	printf "CLI utility to interact with mullvad-vpn. \nAvailable commands:\n"
+# ~~~ STATUS ~~~ #
+	printf "\t%s\n" "${GREEN}[s]tatus: ${NORMAL}check connection status"
+	printf "\t\t%s\n" "${RED}{server}: ${NORMAL}check status for specific server"
+	printf "\t\t%s\n" "${RED}{server}: ${NORMAL}check status for specific server"
+	printf "\t\t%s\n" "${RED}{server}: ${NORMAL}check status for specific server"
+
+# ~~~ CONNECT ~~~ #
+# ~~~ DISCONNECT ~~~ #
+}
