@@ -3,6 +3,7 @@
 choose() {
 	fzf --reverse \
 		--ansi \
+		--no-bold \
 		--min-height=7 --height=7% \
 		--cycle -m --marker="*" \
 		--bind 'tab:down' --bind 'btab:up' \
@@ -52,9 +53,12 @@ active_conn() {
 }
 
 status() {
-	[ -z "$(active_conn)" ] && printf "%s\n" "${RED}No active connection was found." && exit 1
-	[ -z "$1" -a -n "$(active_conn)" ] && printf "${RED}[$(active_conn)] ${NORMAL}connection ${GREEN}confirmed!\n" && exit 0
-	curl https://am.i.mullvad.net/connected
+	[ -n "$1" ] && curl https://am.i.mullvad.net/connected
+	if [ -z "$(active_conn)" ]; then
+		printf "%s\n" "${RED}No active connection was found."
+	else
+		printf "%s\n" "${RED}[$(active_conn)] ${NORMAL}connection ${GREEN}confirmed"
+	fi
 }
 
 existing_connection() {
@@ -112,7 +116,7 @@ randomise() {
 purge() {
 	if [ -z "$1" ]; then
 		printf "%s\n" "Choose which connection you want to ${RED}purge${NORMAL}:"
-		conns=$(available_conns | choose)
+		conns=$(list | choose | awk '{print $1}')
 		[ -z "$conns" ] && printf "%s\n" "No connection chosen, exiting..." && exit 0
 	else
 		printf "%s\n%s\n" "Are you sure you want to ${RED}PURGE ${NORMAL}the following connections?" "${RED}$(available_conns)${NORMAL}"
@@ -120,7 +124,7 @@ purge() {
 		[ -z "$choice" -o "$choice" = "No" ] && printf "%s\n" "Wise choice..." && exit 0
 		conns="$(available_conns)"
 	fi
-	for c in "$conns"; do
+	echo "$conns" | while read c; do
 		remove "$c"
 	done
 }
@@ -130,14 +134,6 @@ list() {
 	[ -z "$conns" ] && printf "%s\n" "${RED}No registered connections found." && exit 1
 	echo "$conns" | awk -v yes="${GREEN}${NORMAL}" -v no="${RED}${NORMAL}" '{ gsub("--",no,$4); gsub("mullvad-[a-z0-9]+",yes,$4); printf ("%s\t%s\n",$1,$4) }'
 }
-
-
-CONF="$HOME/.local/share/vpn"
-# use custom script `colours` to find more colours
-ACCENT="$(tput setaf 12)"
-GREEN="$(tput setaf 10)"
-RED="$(tput setaf 9)"
-NORMAL="$(tput sgr0)"
 
 docs() {
 	printf "CLI utility to interact with mullvad-vpn. \nAvailable commands:\n"
@@ -159,6 +155,13 @@ docs() {
 # ~~~ LIST ~~~ #
 	printf "\t${ACCENT}> %s\n" "${GREEN}l${ACCENT}|${GREEN}list${ACCENT}: ${NORMAL}list existing connections"
 }
+
+CONF="$HOME/.local/share/vpn"
+# use custom script `colours` to find more colours
+ACCENT="$(tput setaf 12)"
+GREEN="$(tput setaf 10)"
+RED="$(tput setaf 9)"
+NORMAL="$(tput sgr0)"
 
 case "$1" in
 	s | status) status "$2" ;;
