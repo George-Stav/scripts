@@ -1,6 +1,6 @@
 #!/bin/sh
 
-symlinks="$HOME/.local/bin"
+symlinks="$SCRIPTS"
 sdir="$HOME/repos/scripts"
 find "$sdir/scripts/" -type f | while read -r s; do
 	[ ! -x "$s" ] && chmod +x "$s"

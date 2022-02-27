@@ -5,7 +5,6 @@
 choose() {
 	fzf --reverse \
 		--ansi \
-		--no-bold \
 		--min-height=7 --height=7% \
 		--cycle -m --marker="*" \
 		--bind 'tab:down' --bind 'btab:up' \
@@ -13,7 +12,11 @@ choose() {
 }
 
 random() {
-	find "$CONF/trackers_block_dns/" -exec basename {} .conf ';' | grep "mullvad-$1[0-9]\+" | shuf -n 1
+	if [ -z "$1" ]; then
+		find "$CONF/trackers_block_dns/" -exec basename {} .conf ';' | shuf -n 1
+	else
+		find "$CONF/trackers_block_dns/" -name "*mullvad-$1[0-9]*.conf" -exec basename {} .conf ';' | shuf -n 1
+	fi
 }
 
 get_rand() {
@@ -98,6 +101,7 @@ disconnect() {
 }
 
 randomise() {
+	[ -z "$(available_conn)" -a "$1" = "force" ] && import "$(random)" && exit 0
 	[ -z "$(available_conn)" ] && printf "%s\n%s\n" "No available connection to randomise..." "Choose from the list below:" && new_connect && exit 0
 
 	new_conn="$(available_conn | get_country | get_rand)"
@@ -152,8 +156,9 @@ case "$1" in
 	sf | force | sforce) status "force" ;;
 	c | connect) connect ;;
 	cn | rn | new | nconnect) new_connect "$2" ;;
-	d | disconnect ) disconnect ;;
+	d | disconnect) disconnect ;;
 	r | random | randomise) randomise ;;
+	rf | rforce) randomise "force" ;;
 	p | purge) purge ;;
 	*) docs ;;
 esac
