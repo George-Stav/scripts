@@ -5,9 +5,7 @@ file=$(find -L \
 	"$HOME/Packt" \
 	"$HOME/.config" | fzf --reverse --height=40%)
 
-# [ -z "$file" ] && exit
-[ -z "$file" ] || [ ! -e "$file" ] && exit
-# [ -z "$file" || ! -e "$file" ] && exit
+[ -z "$file" -o ! -e "$file" ] && exit
 
 case "$file" in
 	*pdf)
@@ -16,7 +14,7 @@ case "$file" in
 	*)
 		cd "$(dirname "$file")" || return
 		if [ -d "$file" ]; then ranger
-		else nvim "$file"
+		else "$EDITOR" "$file"
 		fi
 		;;
 esac

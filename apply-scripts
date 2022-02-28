@@ -1,10 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-symlinks="$HOME/.local/bin"
-find "$HOME/repos/scripts/scripts/" -type f | while read -r s; do
+symlinks="$SCRIPTS"
+sdir="$HOME/repos/scripts"
+find "$sdir/scripts/" -type f | while read -r s; do
 	[ ! -x "$s" ] && chmod +x "$s"
 	ln -sf "$s" "$symlinks"
 done
+ln -sf "$sdir/$(basename "$0")" "$symlinks"
 
 # remove broken symlinks
 find -L "$symlinks" \
