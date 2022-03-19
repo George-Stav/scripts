@@ -41,7 +41,11 @@ get_country() {
 
 import() {
 	# replace trackers_block_dns with variable
-	nmcli connection import type wireguard file "$CONF/trackers_block_dns/$1.conf" > /dev/null && printf "%s %s\n" "${GREEN}+$1" "$ACTIVE"
+	if [ "$2" = "openvpn" ]; then
+		nmcli connection import type openvpn file "$CONF/openvpn/$1.ovpn" > /dev/null && printf "%s %s\n" "${GREEN}+$1" "$ACTIVE"
+	else
+		nmcli connection import type wireguard file "$CONF/trackers_block_dns/$1.conf" > /dev/null && printf "%s %s\n" "${GREEN}+$1" "$ACTIVE"
+	fi
 }
 
 activate() {

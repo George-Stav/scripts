@@ -1,0 +1,84 @@
+#! /bin/sh
+
+fzzf() {
+	fzf --reverse \
+		--ansi \
+		--min-height=7 --height=7% \
+		--cycle -m --marker="*" \
+		--bind 'tab:down' --bind 'btab:up' \
+		--bind 'shift-down:toggle+down' --bind 'shift-up:toggle+up'
+}
+
+_gen() {
+	tmpmail -g "$1" >/dev/null || exit 1
+	sed -i "s/^$IDF//" "$PMAILS"
+	if [ -z "$(grep "^$1$" "$PMAILS")" ]; then
+		printf "%s%s\n" "$IDF" "$1" >> "$PMAILS"
+	else
+		sed -i "s/^$1$/$IDF$1/" "$PMAILS"
+	fi
+}
+
+get() {
+	tmpmail
+}
+
+list() {
+	cat "$PMAILS"
+}
+
+drop() {
+	sel="$(sed "/^$IDF/d" "$PMAILS" | fzzf)"
+	[ -z "$sel" ] && exit 0
+	printf "%s\n%s\n" "Are you sure you want to delete the following email address(es) from the list?" "$(echo "$sel" | sed 's/^/- /')"
+
+	choice="$(printf "Yes\nNo\n" | fzzf)"
+	[ -z "$choice" -o "$choice" = "No" ] && printf "%s\n" "Aborting..." && exit 0
+
+	regex="$(echo "$sel" | sed -z 's/\n/|/g ; s/|$// ; s/^/\(/ ; s/$/\)/')"
+	sed -ir "/$regex/d" "$PMAILS"
+}
+
+choose() {
+	printf "%s %s\n" "Currently monitoring:" "$(grep "$IDF" "$PMAILS" | sed "s/$IDF//")"
+	chosen="$(sed "/^$IDF/d" "$PMAILS" | fzzf)"
+	_gen "$chosen"
+	printf "%s %s\n" "Now monitoring:" "$chosen"
+}
+
+new() {
+	if [ -n "$1" ]; then
+		_gen "$1"
+	else
+		printf "%s" "No email address was given, type one now: "
+		read n
+		_gen "$n"
+	fi
+}
+
+reset() {
+	current="$(grep "$IDF" "$PMAILS" | sed "s/$IDF//")"
+	sed -i "s/^$IDF//g" "$PMAILS"
+	cat "$PMAILS" | while read l; do
+		_gen "$l"
+	done
+	_gen "$current"
+}
+
+docs() {
+	printf "Docs not written yet..."
+}
+
+PMAILS="$HOME/.local/share/pmail/pmail-list"
+IDF=">"
+
+case "$1" in
+	g | get) get ;;
+	l | ls | list) list ;;
+	d | dr | de | drop) drop ;;
+	c | choose) choose ;;
+	n | a | add | new) new "$2" ;;
+	r | reset) reset ;;
+	e | edit) "$EDITOR" "$PMAILS" ;;
+	*) docs ;;
+esac

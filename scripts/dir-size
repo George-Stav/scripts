@@ -1,3 +1,8 @@
 #!/bin/sh
 
-du -bd 1 "$1" | sort -n | numfmt --to iec
+if [ -z "$1" ]; then
+	d="."
+else
+	d="$1"
+fi
+du -bd 1 "$d" 2> /dev/null | sort -n | numfmt --to iec
