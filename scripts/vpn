@@ -117,6 +117,16 @@ purge() {
 	remove "$(available_conn)"
 }
 
+toggle() {
+	if [ "$1" = "play" ]; then
+		warp-cli disconnect && sudo systemctl disable --now warp-svc.service
+		connect
+	else
+		disconnect
+		sudo systemctl enable --now warp-svc.service
+	fi
+}
+
 ###~@~@~@ [DOCUMENTATION] @~@~@~###
 
 docs() {
@@ -160,6 +170,8 @@ case "$1" in
 	r | random | randomise) randomise ;;
 	rf | rforce) randomise "force" ;;
 	p | purge) purge ;;
+	work | w) toggle "work" ;;
+	play | fun) toggle "play" ;;
 	*) docs ;;
 esac
 
