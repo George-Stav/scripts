@@ -20,7 +20,11 @@ _gen() {
 }
 
 get() {
-	tmpmail
+	if [ -z "$1" ]; then
+		tmpmail
+	else
+		tmpmail "$1"
+	fi
 }
 
 list() {
@@ -36,7 +40,7 @@ drop() {
 	[ -z "$choice" -o "$choice" = "No" ] && printf "%s\n" "Aborting..." && exit 0
 
 	regex="$(echo "$sel" | sed -z 's/\n/|/g ; s/|$// ; s/^/\(/ ; s/$/\)/')"
-	sed -ir "/$regex/d" "$PMAILS"
+	sed -r -i "/$regex/d" "$PMAILS"
 }
 
 choose() {
@@ -66,16 +70,34 @@ reset() {
 }
 
 docs() {
-	printf "Docs not written yet..."
+	printf "CLI utility to interact with tmpmail. \nAvailable commands:\n"
+# ~~~ GET ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}g${ACCENT}|${GREEN}get${ACCENT}: ${NORMAL}get most recent emails from pmail being monitored"
+# ~~~ LIST ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}l${ACCENT}|${GREEN}ls${ACCENT}|${GREEN}list${ACCENT}: ${NORMAL}list out all available pmails"
+# ~~~ DROP ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}d${ACCENT}|${GREEN}dr${ACCENT}|${GREEN}drop${ACCENT}: ${NORMAL}drop one or more of the saved pmails"
+# ~~~ CHOOSE ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}c${ACCENT}|${GREEN}choose${ACCENT}: ${NORMAL}choose a different pmail to monitor"
+# ~~~ NEW ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}n${ACCENT}|${GREEN}a${ACCENT}|${GREEN}add${ACCENT}|${GREEN}new${ACCENT}: ${NORMAL}add new pmail to the list"
+# ~~~ RESET ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}r${ACCENT}|${GREEN}reset${ACCENT}: ${NORMAL}reset monitoring list; run whenver a random email is shown instead of the previously chosen monitoring pmail"
+# ~~~ EDIT ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}e${ACCENT}|${GREEN}edit${ACCENT}: ${NORMAL}edit current list of pmails using $EDITOR"
 }
 
 PMAILS="$HOME/.local/share/pmail/pmail-list"
 IDF=">"
+ACCENT="$(tput setaf 12)"
+GREEN="$(tput setaf 10)"
+RED="$(tput setaf 9)"
+NORMAL="$(tput sgr0)"
 
 case "$1" in
-	g | get) get ;;
+	g | get) get "$2" "$3";;
 	l | ls | list) list ;;
-	d | dr | de | drop) drop ;;
+	d | dr | drop) drop ;;
 	c | choose) choose ;;
 	n | a | add | new) new "$2" ;;
 	r | reset) reset ;;
