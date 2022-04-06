@@ -13,7 +13,7 @@ case "$file" in
 		;;
 	*)
 		cd "$(dirname "$file")" || return
-		if [ -d "$file" ]; then ranger
+		if [ -d "$file" ]; then lf
 		else "$EDITOR" "$file"
 		fi
 		;;
