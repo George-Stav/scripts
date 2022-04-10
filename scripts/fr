@@ -1,6 +1,7 @@
 #!/bin/sh
 
 file=$(find -L \
+	"$HOME/dev" \
 	"$HOME/repos" \
 	"$HOME/.config" | fzf --reverse --height=40%)
 
@@ -12,7 +13,7 @@ case "$file" in
 		;;
 	*)
 		cd "$(dirname "$file")" || return
-		if [ -d "$file" ]; then ranger
+		if [ -d "$file" ]; then lf
 		else "$EDITOR" "$file"
 		fi
 		;;
