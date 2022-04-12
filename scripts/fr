@@ -1,8 +1,8 @@
 #!/bin/sh
 
 file=$(find -L \
-	"$HOME/repos" \
 	"$HOME/Packt" \
+	"$HOME/repos" \
 	"$HOME/.config" | fzf --reverse --height=40%)
 
 [ -z "$file" -o ! -e "$file" ] && exit
