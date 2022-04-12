@@ -3,18 +3,14 @@
 file=$(find -L \
 	"$HOME/dev" \
 	"$HOME/repos" \
-	"$HOME/.config" | fzf --reverse --height=40%)
+	"$HOME/.config" | fzf --reverse --height=40% --preview='preview {}')
 
 [ -z "$file" -o ! -e "$file" ] && exit
 
 case "$file" in
-	*pdf)
-		zathura --fork "$file" && exit
-		;;
-	*)
-		cd "$(dirname "$file")" || return
-		if [ -d "$file" ]; then lf
-		else "$EDITOR" "$file"
-		fi
-		;;
+	*.org) "$VISUAL" "$file" ;;
+	*.jpg|*.png|*.gif) sxiv "$file" ;;
+	*.mkv|*.mp3|*.mp4|*.flac|*.webp) vlc "$file" ;;
+	*.pdf) zathura "$file" ;;
+	*) [ -d "$file" ] && lf "$file" || "$EDITOR" "$file" ;;
 esac

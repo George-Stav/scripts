@@ -20,6 +20,7 @@ cat "$tracklist" | while read l; do
 	# echo "$i/$tracks. $mp3 --> $DIR/$title"
 	# ffmpeg -y -nostdin -hide_banner -loglevel error -ss "$start" -to "$end" -i "$mp3" -c:v copy "$DIR/$title.mp3"
 
+	mkdir -vp "$DIR/Tracks"
 	printf "$i/$tracks. Processing %s -> %s..." "$(basename "$mp3")" "$title.mp3"
 	ffmpeg \
 		-y \
@@ -29,7 +30,7 @@ cat "$tracklist" | while read l; do
 		-i "$mp3" \
 		-c:v copy \
 		-metadata track="$i/$tracks" \
-		"$DIR/$title.mp3"
+		"$DIR/Tracks/$title.mp3"
 	printf "Done\n"
 	i=$((i+1))
 done
