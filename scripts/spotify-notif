@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# playerctl play-pause
+[ "$(playerctl -l | head -n 1)" != "spotify" ] && exit
+
+DIR="$HOME/.local/share/spotify-notif"
+cdn="$($SCRIPTS/spotifycli --arturl)"
+
+[ "$cdn" != "$(cat "$DIR/cdn")" ] && echo "$cdn" > "$DIR/cdn" && curl -s "$cdn" --output "$DIR/cover.png"
+
+dunstify -t 5000 -a "SpotifySong" -u low -i "$DIR/cover.png" -h string:x-dunst-stack-tag:"spotify-notif" "$($SCRIPTS/spotifycli --album)" "$($SCRIPTS/spotifycli --status)"
