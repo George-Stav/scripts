@@ -1,8 +1,9 @@
 #!/bin/sh
 
-[ "$(playerctl -l | head -n 1)" != "spotify" ] && exit
+[ "$(playerctl -l | head -n 1)" != "spotify" -a "$1" != "force" ] && exit
 
 DIR="$HOME/.local/share/spotify-notif"
+[ ! -d "$DIR" ] && mkdir -p "$DIR"
 cdn="$($SCRIPTS/spotifycli --arturl)"
 
 [ "$cdn" != "$(cat "$DIR/cdn")" ] && echo "$cdn" > "$DIR/cdn" && curl -s "$cdn" --output "$DIR/cover.png"

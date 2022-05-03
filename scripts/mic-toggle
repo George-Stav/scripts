@@ -2,7 +2,8 @@
 
 msgTag="micstate"
 
-state=$(amixer set Mic toggle | grep Mono: | awk -F '[][]' '{print $6}')
+# state=$(amixer set Mic toggle | grep Mono: | awk -F '[][]' '{print $6}')
+state=$(amixer set Capture toggle | grep Left: | awk -F '[][]' '{print $6}')
 if [ "$state" = "on" ]; then
 	dunstify -t 3000 -a "micToggle" -u low -i "~/.local/share/icons/sound/check.png" -h string:x-dunst-stack-tag:$msgTag "Mic active"
 else

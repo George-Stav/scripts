@@ -1,3 +1,4 @@
 #!/bin/sh
 
-echo $(amixer get Mic | grep Mono: | awk -F '[][]' '{print $6}')
+# echo $(amixer get Mic | grep Mono: | awk -F '[][]' '{print $6}')
+echo $(amixer get Capture | grep Left: | awk -F '[][]' '{print $6}')

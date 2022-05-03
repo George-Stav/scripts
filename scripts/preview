@@ -14,15 +14,17 @@ image() {
 batorcat() {
 	file="$1"
 	shift
-	if command -v bat > /dev/null 2>&1
+	# if command -v bat > /dev/null 2>&1
+	if [ -f "$file" ]
 	then
 		bat --color=always --style=plain --pager=never "$file" "$@"
-	else
-		cat "$file"
+	elif [ -d "$file" ]
+	then
+		tree "$file" -La 1
 	fi
 }
 
-CACHE="$HOME/.cache/lf/thumbnail.$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f "$1")" | sha256sum | awk '{print $1}'))"
+CACHE="$HOME/.cache/lf/thumbnail.$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f "$1")" | sha256sum | awk '{print $1}')"
 
 case "$(printf "%s\n" "$(readlink -f "$1")" | awk '{print tolower($0)}')" in
 	*.tgz|*.tar.gz) tar tzf "$1" ;;
