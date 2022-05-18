@@ -7,10 +7,10 @@ canberra-gtk-play -i audio-volume-change -d "changeVolume"
 msgTag="myvolume"
 
 # Change the volume using pulseaudio
-if [ "$@" = "0" ]; then
+if [ "$1" = "0" ]; then
     pactl set-sink-mute @DEFAULT_SINK@ toggle > /dev/null
 else
-    pactl set-sink-volume @DEFAULT_SINK@ "$@" > /dev/null
+    pactl set-sink-volume @DEFAULT_SINK@ "$1" > /dev/null
 fi
 
 # Query amixer for the current volume and whether or not the speaker is muted
