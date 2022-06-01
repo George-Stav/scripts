@@ -3,4 +3,4 @@
 # TODO: if first prompt is empty then escape
 # TODO: remove new line from copied word
 
-dym -c "$(echo "\n" | dmenu -p "Enter word:")" | dmenu -p "Select spelling:" | xclip -selection clipboard
+dym -c "$(echo "\n" | dmenu -p "Enter word:")" | dmenu -p "Select spelling:" | tr -d "\n" | xclip -selection clipboard
