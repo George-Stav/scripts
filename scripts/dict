@@ -1,6 +1,3 @@
 #!/bin/sh
 
-# TODO: if first prompt is empty then escape
-# TODO: remove new line from copied word
-
-dym -c "$(echo "\n" | dmenu -p "Enter word:")" | dmenu -p "Select spelling:" | tr -d "\n" | xclip -selection clipboard
+dym -n 20 -c "$(printf "\n" | dmenu -p "Enter word:")" | rofi -m -4  -dmenu -p "Select spelling" | tr -d "\n" | xclip -selection clipboard
