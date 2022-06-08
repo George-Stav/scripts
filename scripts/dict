@@ -1,3 +1,4 @@
 #!/bin/sh
 
-dym -n 20 -c "$(printf "\n" | dmenu -p "Enter word:")" | rofi -m -4  -dmenu -p "Select spelling" | tr -d "\n" | xclip -selection clipboard
+locale="$(printf "en\nel\n" | rofi -m -4 -dmenu -p "Select locale")"
+dym -n 20 -l "$locale" -c "$(printf "\n" | dmenu -p "Enter word:")" | rofi -m -4  -dmenu -p "Select spelling" | tr -d "\n" | xclip -selection clipboard
