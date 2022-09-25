@@ -13,4 +13,4 @@ current=$(xkblayout-state print "%s")
 next=${layouts[$current]}
 
 setxkbmap $next
-notify-send -t 2000 -i "/home/george/.local/share/icons/flags/$next.png" "Keyboard Layout"
+notify-send -t 2000 -i "$HOME/.local/share/icons/flags/$next.png" "Keyboard Layout"
