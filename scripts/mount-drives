@@ -16,4 +16,5 @@ if [ ! -d "$mountpoint" ]; then
 	sudo mkdir -p "$mountpoint"
 fi
 
-sudo mount "$chosen" "$mountpoint" && notify-send "$chosen mounted at $mountpoint"
+sudo mount "$chosen" "$mountpoint" 
+notify-send "$chosen mounted at $mountpoint"

@@ -1,3 +1,8 @@
 #!/bin/sh
 
-amixer get Capture | grep Left: | awk -F '[][]' '{print $4}'
+state="$(pactl get-source-mute @DEFAULT_SOURCE@ | awk '{print $2}')"
+if [ "$state" = "no" ]; then
+    echo "on"
+else
+    echo "off"
+fi
