@@ -1,0 +1,9 @@
+#!/bin/sh
+
+[ "$(lsusb | grep -E "Western Digital .* Elements 2667")" ] || { printf "WD is currently not plugged in. \nExiting...\n"; exit 1; }
+[ "$(lsblk | grep "WD")" ] || echo "Mounting WD..."; sudo mount -U DE4E485B4E482E99 2> /dev/null
+
+syncs="ANIME MOVIES-SERIES PHOTOS spare-car-parts.bkp"
+for s in $syncs; do # $syncs is not quoted on purpose
+    rsync -ahP "/mnt/HDD/$s/" "/mnt/WD/$s"
+done

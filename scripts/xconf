@@ -44,7 +44,7 @@ _run() {
     eval "$1"
 }
 
-_build_command() {
+_build() {
     # $1 -> valid output (e.g. HDMI-1)
     output="$1"
     [ -z "$output" ] && read -r output
@@ -82,7 +82,7 @@ configure() {
     # sequentially go through all connected outputs in order to build up an xrandr command
     commands="xrandr"
     for out in $(xrandr | awk '$2=="connected" {print $1}'); do
-        commands="$commands$(_build_command "$out" | sed 's/xrandr//')"
+        commands="$commands$(_build "$out" | sed 's/xrandr//')"
         [ "$commands" = "xrandr" ] && exit 1
         echo "$commands"
     done
@@ -100,14 +100,9 @@ configure() {
 
 ammend() {
     # edit one of the outputs chosen by the user
-    _run "$(xrandr | awk '$2=="connected" {print $1}' | _choose | _build_command)"
-}
-
-save() {
-    # save current xrandr configuration at the top of the $CONF file
-    new="new-command"
-    printf "$new\n$(cat "$CONF")" > "$CONF"
-    printf "%s\n%s\n" "New primary command:" "$new"
+    output="$(xrandr | awk '$2=="connected" {print $1}' | _choose)"
+    _exit_on_empty "$output"
+    _run "$(_build "$output")"
 }
 
 docs() {
@@ -118,35 +113,27 @@ docs() {
     printf "\t${ACCENT}> %s\n" "${GREEN}a${ACCENT}|${GREEN}ammend${ACCENT}: ${NORMAL}ammend one of the current outputs"
     # ~~~ RELOAD ~~~ #
     printf "\t${ACCENT}> %s\n" "${GREEN}r${ACCENT}|${GREEN}reload${ACCENT}: ${NORMAL}run the xrandr command that appears on the first line of ${ACCENT}$CONF${NORMAL}"
-    # ~~~ SAVE ~~~ #
-    # printf "\t${ACCENT}> %s\n" "${GREEN}s${ACCENT}|${GREEN}save${ACCENT}: ${NORMAL}save current xrandr configuration at the top of ${ACCENT}$CONF${NORMAL}"
     # ~~~ BROWSE ~~~ #
     printf "\t${ACCENT}> %s\n" "${GREEN}b${ACCENT}|${GREEN}browse${ACCENT}: ${NORMAL}browse saved configurations in and run one of them" 
     # ~~~ EDIT ~~~ #
     printf "\t${ACCENT}> %s\n" "${GREEN}e${ACCENT}|${GREEN}edit${ACCENT}: ${NORMAL}edit ${ACCENT}$CONF ${NORMAL}using ${ACCENT}$EDITOR${NORMAL}"
 }
 
-tet() {
-    # for testing
-    x="$(printf "one\ntwo\nthree" | _choose)"
-    [ "$x" ] && echo "successful" || echo "failure"
-}
-
 ###~@~@~@ [MAIN] @~@~@~###
 
-CONF="$HOME/.local/share/xconf/xconf.rc"
+CONF="$HOME/.local/share/xconf/xconf.rc" 
 ACCENT="$(tput setaf 12)"
 GREEN="$(tput setaf 10)"
 RED="$(tput setaf 9)"
 NORMAL="$(tput sgr0)"
 
+mkdir -p "$HOME/.local/share/xconf" && touch "$CONF"
+
 case "$1" in
     c | configure) configure ;;
     a | ammend) ammend ;;
     r | reload) _run "$(head -n 1 $CONF)" ;;
-    # s | save) save ;;
     b | browse) _run "$(cat "$CONF" | _choose_preview)" ;;
     e | edit) "$EDITOR" "$CONF" ;;
-    t) tet ;;
     *) docs ;;
 esac
