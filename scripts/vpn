@@ -15,7 +15,11 @@ random() {
 	if [ -z "$1" ]; then
 		find "$CONF/$PROTOCOL/" -exec basename {} .conf ';' | shuf -n 1
 	else
-		find "$CONF/$PROTOCOL/" -name "*mullvad-$1[0-9]*.conf" -exec basename {} .conf ';' | shuf -n 1
+		find "$CONF/$PROTOCOL/" \( \
+            -name "*mullvad-$1[0-9]*.conf" -o \
+            -name "$1[0-9]*-wireguard.conf" -o \
+            -name "$1-[a-z]*-wg-[0-9]*.conf" \) \
+            -exec basename {} .conf ';' | shuf -n 1
 	fi
 }
 
@@ -27,14 +31,14 @@ get_rand() {
 	while [ -n "$(available_conn | grep "$rand")" ]; do
 		rand=$(random "$code")
 	done
-	printf "%s" "$rand"
+	printf "$rand"
 }
 
 get_country() {
 	# read -r allows for piping into the function since it reads standard input
 	conn="$1"
 	[ -z "$conn" ] && read -r conn
-	echo "$conn" | awk -F '-' '{print $2}' | grep '[a-z]\+' -o
+    echo "$conn" | cut -c1-2
 }
 
 ###~@~@~@ [CONNECTION HELPERS] @~@~@~###
@@ -61,11 +65,11 @@ remove() {
 }
 
 available_conn() {
-	nmcli connection show | awk '/mullvad/ {print $1}'
+    nmcli connection show | awk '/(mullvad|wireguard|wg)/ {print $1}'
 }
 
 active_conn() {
-	nmcli device show | awk '/mullvad/ {print $2}' | head -1
+    nmcli device show | awk '/CONNECTION:(.)*(mullvad|wireguard|wg)/ {print $2}' | head -1
 }
 
 ###~@~@~@ [FUNCTIONS] @~@~@~###
@@ -105,8 +109,8 @@ disconnect() {
 }
 
 randomise() {
-	[ -z "$(available_conn)" ] && [ "$1" = "force" ] && import "$(random)" && exit 0
-	[ -z "$(available_conn)" ] && printf "%s\n%s\n" "No available connection to randomise..." "Choose from the list below:" && new_connect && exit 0
+	[ -z "$(available_conn)" -a "$1" = "force" ] && { import "$(random)"; exit 0; }
+	[ -z "$(available_conn)" ] && { printf "%s\n%s\n" "No available connection to randomise..." "Choose from the list below:"; new_connect; exit 0; }
 
 	new_conn="$(available_conn | get_country | get_rand)"
 	remove "$(available_conn)"
@@ -115,7 +119,7 @@ randomise() {
 
 purge() {
 	[ -z "$(available_conn)" ] && printf "%s\n" "No available connection to purge, exiting..." && exit 0
-	printf "%s\n" "Are you sure you want to purge your connection to ${ACCENT}[$(available_conn)] ${NORMAL}?"
+	printf "%s\n" "Are you sure you want to purge your connection to ${ACCENT}[$(available_conn)]${NORMAL}?"
 	choice=$(printf "Yes\nNo\n" | choose)
 	[ -z "$choice" ] || [ "$choice" = "No" ] && printf "%s\n" "Wise choice..." && exit 0
 	remove "$(available_conn)"
@@ -137,6 +141,8 @@ docs() {
 	printf "\t${ACCENT}> %s\n" "${GREEN}d${ACCENT}|${GREEN}disconnect${ACCENT}: ${NORMAL}deactivate current connection"
 # ~~~ RANDOMISE ~~~ #
 	printf "\t${ACCENT}> %s\n" "${GREEN}r${ACCENT}|${GREEN}random${ACCENT}|${GREEN}randomise${ACCENT}: ${NORMAL}import new connection to a different server of the same country; old connection is deleted"
+# ~~~ GET_COUNTRY ~~~ #
+	printf "\t${ACCENT}> %s\n" "${GREEN}gc${ACCENT}|${GREEN}get-country${ACCENT}: ${NORMAL}get the two letter country ISO code of the current active connection"
 # ~~~ PURGE ~~~ #
 	printf "\t${ACCENT}> %s\n" "${GREEN}p${ACCENT}|${GREEN}purge${ACCENT}: ${NORMAL}delete the existing connection, if there is one"
 # ~~~ HELP ~~~ #
@@ -146,7 +152,7 @@ docs() {
 ###~@~@~@ [MAIN] @~@~@~###
 
 CONF="$HOME/.local/share/vpn"
-PROTOCOL="ads_trackers_malware_block" #"trackers_block_dns"
+PROTOCOL="ads_trackers_block" #"trackers_block_dns"
 # use custom script `colours` to find more colours
 ACCENT="$(tput setaf 12)"
 GREEN="$(tput setaf 10)"
@@ -156,6 +162,10 @@ NORMAL="$(tput sgr0)"
 ACTIVE=" ${NORMAL}"
 DEAD=" ${NORMAL}"
 
+tet() {
+    echo "$(active_conn)"
+}
+
 case "$1" in
 	s | status) status ;;
 	sf | force | sforce) status "force" ;;
@@ -164,7 +174,9 @@ case "$1" in
 	d | disconnect) disconnect ;;
 	r | random | randomise) randomise ;;
 	rf | rforce) randomise "force" ;;
+    gc | get-country) echo "$(active_conn | get_country)" ;;
 	p | purge) purge ;;
+    t) tet ;;
 	*) docs ;;
 esac
 
