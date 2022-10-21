@@ -8,4 +8,4 @@ else
 	chosen=$(echo "$drives" | dmenu -i -p "Unmount which drive?" | awk '{print $1}')
 fi
 [ -z "$chosen" ] && exit
-sudo umount "$chosen" && notify-send "$chosen was unmounted"
+udisksctl unmount -b "$chosen" && notify-send "$chosen was unmounted"

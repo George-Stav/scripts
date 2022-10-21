@@ -1,7 +1,9 @@
 #!/bin/sh
 
+UUID="DE4E485B4E482E99"
+
 [ "$(lsusb | grep -E "Western Digital .* Elements 2667")" ] || { printf "WD is currently not plugged in. \nExiting...\n"; exit 1; }
-[ "$(lsblk | grep "WD")" ] || echo "Mounting WD..."; sudo mount -U DE4E485B4E482E99 2> /dev/null
+[ "$(lsblk | grep "WD")" ] || echo "Mounting WD..."; udisksctl mount -b "$(lsblk -po NAME,UUID | awk -v uuid="$UUID" '$0 ~ uuid {print $1}' | grep -Eo "[a-z0-9/]*")"
 
 syncs="ANIME MOVIES-SERIES PHOTOS MUSIC spare-car-parts.bkp"
 for s in $syncs; do # $syncs is not quoted on purpose

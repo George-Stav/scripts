@@ -5,7 +5,7 @@ mountable=$(lsblk -lp | grep "part $" | awk '{print $1, "(" $4 ")"}')
 chosen=$(echo "$mountable" | dmenu -i -p "Mount which drive?" | awk '{print $1}')
 [ -z "$chosen" ] && exit 1
 
-sudo mount "$chosen" 2> /dev/null && exit 0
+udisksctl mount -b "$chosen" 2> /dev/null && exit 0
 
 dirs=$(find /mnt /media /home/ -maxdepth 3 -type d -empty 2> /dev/null)
 mountpoint=$(echo "$dirs" | dmenu -i -p "Enter mountpoint for $chosen")
@@ -16,5 +16,4 @@ if [ ! -d "$mountpoint" ]; then
 	sudo mkdir -p "$mountpoint"
 fi
 
-sudo mount "$chosen" "$mountpoint" 
-notify-send "$chosen mounted at $mountpoint"
+udisksctl mount -b "$chosen" "$mountpoint" && notify-send "$chosen mounted at $mountpoint"
