@@ -1,7 +1,7 @@
 #!/bin/sh
 
 symlinks="$SCRIPTS"
-sdir="$HOME/repos/scripts"
+sdir="$HOME/shared/scripts"
 find "$sdir/scripts/" -type f | while read -r s; do
 	[ ! -x "$s" ] && chmod +x "$s"
     echo "linking $s"
