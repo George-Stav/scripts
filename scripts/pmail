@@ -21,10 +21,15 @@ _gen() {
 
 get() {
 	if [ -z "$1" ]; then
-		tmpmail
+        tmpmail
 	else
-		tmpmail "$1"
+		tmpmail -b firefox "$1"
 	fi
+}
+
+get_last() {
+    id="$(pmail g | grep -E '^[0-9]+' | awk 'NR==1 {print $1}')"
+    get "$id"
 }
 
 list() {
@@ -54,7 +59,7 @@ new() {
 	if [ -n "$1" ]; then
 		_gen "$1"
 	else
-		printf "%s" "No email address was given, type one now: "
+		printf "%s\n%s\n> " "No email address was given, type one now:" "[a-z0-9]+@1secmail.com|1secmail.org|1secmail.net|bheps.com|dcctb.com|kzccv.com|qiott.com|wuuvo.com"
 		read n
 		_gen "$n"
 	fi
@@ -70,21 +75,23 @@ reset() {
 }
 
 docs() {
-	printf "CLI utility to interact with tmpmail. \nAvailable commands:\n"
-# ~~~ GET ~~~ #
-	printf "\t${ACCENT}> %s\n" "${GREEN}g${ACCENT}|${GREEN}get${ACCENT}: ${NORMAL}get most recent emails from pmail being monitored"
-# ~~~ LIST ~~~ #
-	printf "\t${ACCENT}> %s\n" "${GREEN}l${ACCENT}|${GREEN}ls${ACCENT}|${GREEN}list${ACCENT}: ${NORMAL}list out all available pmails"
-# ~~~ DROP ~~~ #
-	printf "\t${ACCENT}> %s\n" "${GREEN}d${ACCENT}|${GREEN}dr${ACCENT}|${GREEN}drop${ACCENT}: ${NORMAL}drop one or more of the saved pmails"
-# ~~~ CHOOSE ~~~ #
-	printf "\t${ACCENT}> %s\n" "${GREEN}c${ACCENT}|${GREEN}choose${ACCENT}: ${NORMAL}choose a different pmail to monitor"
-# ~~~ NEW ~~~ #
-	printf "\t${ACCENT}> %s\n" "${GREEN}n${ACCENT}|${GREEN}a${ACCENT}|${GREEN}add${ACCENT}|${GREEN}new${ACCENT}: ${NORMAL}add new pmail to the list"
-# ~~~ RESET ~~~ #
-	printf "\t${ACCENT}> %s\n" "${GREEN}r${ACCENT}|${GREEN}reset${ACCENT}: ${NORMAL}reset monitoring list; run whenver a random email is shown instead of the previously chosen monitoring pmail"
-# ~~~ EDIT ~~~ #
-	printf "\t${ACCENT}> %s\n" "${GREEN}e${ACCENT}|${GREEN}edit${ACCENT}: ${NORMAL}edit current list of pmails using $EDITOR"
+    printf "%s\n%s\n" "CLI utility to interact with tmpmail." "Available commands:"
+    # ~~~ GET ~~~ #
+    printf "\t${ACCENT}> %s\n" "${GREEN}g${ACCENT}|${GREEN}get${ACCENT}: ${NORMAL}get most recent emails from pmail being monitored"
+    # ~~~ GET LAST ~~~ #
+    printf "\t${ACCENT}> %s\n" "${GREEN}gl${ACCENT}|${GREEN}get-last${ACCENT}: ${NORMAL}display the latest email in the browser"
+    # ~~~ LIST ~~~ #
+    printf "\t${ACCENT}> %s\n" "${GREEN}l${ACCENT}|${GREEN}ls${ACCENT}|${GREEN}list${ACCENT}: ${NORMAL}list out all available pmails"
+    # ~~~ DROP ~~~ #
+    printf "\t${ACCENT}> %s\n" "${GREEN}d${ACCENT}|${GREEN}dr${ACCENT}|${GREEN}drop${ACCENT}: ${NORMAL}drop one or more of the saved pmails"
+    # ~~~ CHOOSE ~~~ #
+    printf "\t${ACCENT}> %s\n" "${GREEN}c${ACCENT}|${GREEN}choose${ACCENT}: ${NORMAL}choose a different pmail to monitor"
+    # ~~~ NEW ~~~ #
+    printf "\t${ACCENT}> %s\n" "${GREEN}n${ACCENT}|${GREEN}a${ACCENT}|${GREEN}add${ACCENT}|${GREEN}new${ACCENT}: ${NORMAL}add new pmail to the list"
+    # ~~~ RESET ~~~ #
+    printf "\t${ACCENT}> %s\n" "${GREEN}r${ACCENT}|${GREEN}reset${ACCENT}: ${NORMAL}reset monitoring list; run whenever a random email is shown instead of the previously chosen monitoring pmail"
+    # ~~~ EDIT ~~~ #
+    printf "\t${ACCENT}> %s\n" "${GREEN}e${ACCENT}|${GREEN}edit${ACCENT}: ${NORMAL}edit current list of pmails using $EDITOR"
 }
 
 PMAILS="$HOME/.local/share/pmail/pmail-list"
@@ -96,6 +103,7 @@ NORMAL="$(tput sgr0)"
 
 case "$1" in
 	g | get) get "$2" "$3";;
+    gl | get-last) get_last "$2";;
 	l | ls | list) list ;;
 	d | dr | drop) drop ;;
 	c | choose) choose ;;
