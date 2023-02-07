@@ -72,7 +72,7 @@ _build() {
     [ "$pos" != "none" ] && xrandr="$xrandr $pos"
     _exit_on_empty "$pos"
 
-    primary="$(printf "No\nYes" | _choose "Is this the primary output? > ")"
+    primary="$(printf "Yes\nNo" | _choose "Is this the primary output? > ")"
     [ "$primary" = "Yes" ] && xrandr="$xrandr --primary"
 
     echo "$xrandr"
