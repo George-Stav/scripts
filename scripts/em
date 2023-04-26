@@ -3,14 +3,14 @@
 source "$HOME/.config/env"
 startup() {
     for SOCKNAME in $EMACS_DAEMONS; do
-	emacs --daemon="$SOCKNAME"
+        emacs --daemon="$SOCKNAME"
     done
 }
 
 purge() {
     set IFS='\n';
     for SOCKNAME in $(ps -x | grep "emacs --daemon" | head -n -1 | awk -F'=' '{print $2}'); do
-	emacsclient -s "$SOCKNAME" -e '(kill-emacs)'
+        emacsclient -s "$SOCKNAME" -e '(save-buffers-kill-emacs)'
     done
     unset IFS;
 }
@@ -26,5 +26,6 @@ new() {
 case "$1" in
     s | startup) startup ;;
     p | purge) purge ;;
+    r | reboot) purge && startup ;;
     n | new) new ;;
 esac
