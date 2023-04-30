@@ -44,7 +44,6 @@ get_country() {
 ###~@~@~@ [CONNECTION HELPERS] @~@~@~###
 
 import() {
-	# replace trackers_block_dns with variable
 	if [ "$2" = "openvpn" ]; then
 		nmcli connection import type openvpn file "$CONF/openvpn/$1.ovpn" > /dev/null && printf "%s %s\n" "${GREEN}+$1" "$ACTIVE"
 	else
@@ -95,11 +94,19 @@ new_connect() {
 		[ -z "$country" ] && printf "%s\n" "No country selected, exiting..." && exit 0
 		new_conn=$(get_country "$country" | get_rand)
 	else
-		code="$1"
-		[ -z "$(random "$code")" ] && printf "%s\n" "${RED}$code ${NORMAL}is an invalid country code." && exit 1
-		new_conn=$(get_rand "$code")
+		code="$1" # valid: [gb-mnc-wg-004, gb]
+		if [ -n "$(random "$code")" ]; then
+		    new_conn=$(get_rand "$code")
+		elif [ -n "$(ls $CONF/$PROTOCOL/ | grep "$code")" ]; then
+		    new_conn="$code"
+		else
+		    printf "%s\n" "${RED}$code ${NORMAL}is an invalid code."
+		    exit 1
+		fi
 	fi
 	[ -n "$(available_conn)" ] && remove "$(available_conn)"
+	# cases where partial file is given (e.g. "gb-lon" instead of "gb-lon-wg-302")
+	# fail through nmcli in following function
 	import "$new_conn"
 }
 
