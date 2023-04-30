@@ -26,5 +26,6 @@ new() {
 case "$1" in
     s | startup) startup ;;
     p | purge) purge ;;
+    r | reboot) purge && startup ;;
     n | new) new ;;
 esac
