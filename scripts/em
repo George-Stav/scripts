@@ -10,7 +10,7 @@ startup() {
 purge() {
     set IFS='\n';
     for SOCKNAME in $(ps -x | grep "emacs --daemon" | head -n -1 | awk -F'=' '{print $2}'); do
-	emacsclient -s "$SOCKNAME" -e '(kill-emacs)'
+        emacsclient -s "$SOCKNAME" -e '(save-buffers-kill-emacs)'
     done
     unset IFS;
 }

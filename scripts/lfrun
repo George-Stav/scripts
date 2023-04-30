@@ -18,5 +18,5 @@ else
 	ueberzug layer -s <"$FIFO_UEBERZUG" -p json &
 	exec 3>"$FIFO_UEBERZUG"
 	trap cleanup EXIT
-	lf "$@" 3>&-
+	lf -log "$HOME/.local/share/lf/err.log" "$@" 3>&-
 fi
